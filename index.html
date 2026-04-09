@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>音声コンテンツ タイトルコール台本</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:sans-serif;background:#1a1a2e;color:#eee;padding:16px 20px;max-width:900px;margin:0 auto}
+    h1{text-align:center;margin-bottom:20px;font-size:1.3em}
+    .card{background:#fff;color:#333;border-radius:12px;margin-bottom:20px}.card.done{opacity:.55;border-left-color:#95a5a6}
+    .card-top{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;cursor:pointer;background:#b3e5fc;border-radius:12px 12px 0 0}
+    .card-top-left{flex:1}
+    .card-top h2{font-size:1em;margin:0}
+    .badge{padding:4px 14px;border-radius:20px;font-size:.82em;font-weight:bold;color:#fff;cursor:pointer;white-space:nowrap}
+    .badge.pending{background:#e67e22}
+    .badge.done{background:#95a5a6}
+    .card-body{padding:0 16px 14px}
+    .card-section{padding:10px 12px;margin-bottom:8px;background:#f9f9f9;border-radius:8px;cursor:pointer;min-height:40px}
+    .card-section:hover{background:#f0f0f0}
+    .card-section-label{font-weight:bold;font-size:.85em;color:#e67e22;margin-bottom:4px}
+    .card-section-label.cta{color:#27ae60}
+    .card-section-label.voice{color:#8e44ad}
+    .card-section-text{white-space:pre-wrap;font-size:.93em;line-height:1.6}
+    .card-section-text.placeholder{color:#aaa;font-style:italic}
+    .card-section textarea{width:100%;min-height:80px;font-size:.93em;line-height:1.6;border:1px solid #ccc;border-radius:6px;padding:8px;font-family:sans-serif;resize:vertical}
+    .shooting-box{background:#fff;color:#333;border-radius:12px;padding:16px;margin-bottom:20px}
+    .shooting-box h3{margin-bottom:8px;font-size:.95em}
+    .shooting-box div[contenteditable]{min-height:40px;border:1px solid #ddd;border-radius:6px;padding:8px;font-size:.93em;line-height:1.6;outline:none}
+    .shooting-box div[contenteditable]:focus{border-color:#b3e5fc}
+    .toast{position:fixed;bottom:20px;right:20px;background:#27ae60;color:#fff;padding:10px 24px;border-radius:8px;font-size:.95em;opacity:0;transition:opacity .3s;z-index:999}
+    .toast.show{opacity:1}
+    @media(max-width:600px){h1{font-size:1em;margin-bottom:14px}.card-top h2{font-size:.85em}.card-section-label{font-size:.75em}.card-section-text{font-size:.82em}.card-body{padding:0 12px 12px}.card-top{padding:10px 12px}.badge{font-size:.72em;padding:3px 10px}}
+    </style>
+  </head>
+  <body>
+    <h1>📝 音声コンテンツ タイトルコール台本</h1>
+  <div class="shooting-box"><h3>📋 撮影詳細</h3><div contenteditable="true" id="shootingText" style="color:#aaa">（クリックして入力）</div>div></div>div>
+  <div id="cardsList"></div>div>
+  <div class="toast" id="toast">✅ 保存しました</div>div>
+  <script>
+    var API='https://script.google.com/macros/s/AKfycbw8Ipw3Q-4vMCPs19Ypie64BuaTWVu_Zw-iEGRUv4SjSr4KAWmnXbEDsU6ZA-32p8_jsA/exec';
+    var data=[
+      {id:'00',badge:'00 はじめに',title:'月収128万おめでとう！みなこ式AI副業ってことで話していく',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d1',badge:'Day1',title:'【大公開】50代でも初月100万達成できたAI副業の正体',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d2',badge:'Day2',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d3',badge:'Day3',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d4',badge:'Day4',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d5',badge:'Day5',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d6',badge:'Day6',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d7',badge:'Day7',title:'',bouto:'',cta:'',voice:'',note:'',done:false},
+      {id:'d7b',badge:'裏コンテンツ',title:'',bouto:'',cta:'',voice:'',note:'',done:false}
+      ];
+    function escapeHtml(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+    function showToast(){var t=document.getElementById('toast');t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2000);}
+    function saveToServer(key,value){
+      fetch(API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({key:key,value:value})});
+      localStorage.setItem(key,value);
+    }
+    function renderCards(){
+      var html='';
+      for(var i=0;i<data.length;i++){
+        var d=data[i];var bc=d.done?'badge done':'badge pending';
+        var boutoDisplay=d.bouto||'<span class="placeholder">（クリックして入力）</span>';
+        var boutoClass=d.bouto?'card-section-text':'card-section-text placeholder';
+        var ctaDisplay=d.cta||'<span class="placeholder">（クリックして入力）</span>';
+        var ctaClass=d.cta?'card-section-text':'card-section-text placeholder';
+        var voiceDisplay=d.voice||'<span class="placeholder">（クリックして入力）</span>';
+        var voiceClass=d.voice?'card-section-text':'card-section-text placeholder';
+        html+='<div class="card'+(d.done?' done':'')+'">';
+        html+='<div class="card-top"><div class="card-top-left"><h2 contenteditable="true" data-id="'+d.id+'">'+escapeHtml(d.title)+'</h2></div><span class="'+bc+'" data-id="'+d.id+'">'+escapeHtml(d.badge)+'</span></div>';
+        html+='<div class="card-body">';
+        html+='<div class="card-section" data-card-id="'+d.id+'" data-field="bouto"><div class="card-section-label">🎙 冒頭タイトルコール</div><div class="'+boutoClass+'">'+boutoDisplay+'</div></div>';
+        html+='<div class="card-section" data-card-id="'+d.id+'" data-field="cta"><div class="card-section-label cta">📣 終了タイトルコール</div><div class="'+ctaClass+'">'+ctaDisplay+'</div></div>';
+        html+='<div class="card-section" data-card-id="'+d.id+'" data-field="voice"><div class="card-section-label voice">🔊 音声つなぎ(メモ)</div><div class="'+voiceClass+'">'+voiceDisplay+'</div></div>';
+        html+='</div></div>';
+      }
+      document.getElementById('cardsList').innerHTML=html;
+      bindCardEvents();
+    }
+    function startEdit(section){
+      var cardId=section.getAttribute('data-card-id');
+      var field=section.getAttribute('data-field');
+      var idx=data.findIndex(function(d){return d.id===cardId;});
+      if(idx<0)return;
+      var current=data[idx][field]||'';
+      var label=section.querySelector('.card-section-label').outerHTML;
+      section.innerHTML=label+'<textarea>'+escapeHtml(current)+'</textarea>';
+      var ta=section.querySelector('textarea');ta.focus();
+      ta.addEventListener('blur',function(){
+        var val=ta.value.trim();data[idx][field]=val;
+        var co={};for(var j=0;j<data.length;j++){co[data[j].id]={bouto:data[j].bouto,cta:data[j].cta,voice:data[j].voice,note:data[j].note};}
+        saveToServer('cardContent',JSON.stringify(co));
+        renderCards();if(val)showToast();
+      });
+    }
+    function toggleDone(id){
+      var idx=data.findIndex(function(d){return d.id===id;});
+      if(idx<0)return;data[idx].done=!data[idx].done;
+      var st={};for(var j=0;j<data.length;j++){st[data[j].id]=data[j].done;}
+      saveToServer('cardState',JSON.stringify(st));renderCards();
+    }
+    function saveTitle(id,text){
+      var idx=data.findIndex(function(d){return d.id===id;});
+      if(idx<0)return;data[idx].title=text;
+      var ti={};for(var j=0;j<data.length;j++){ti[data[j].id]=data[j].title;}
+      saveToServer('cardTitles',JSON.stringify(ti));showToast();
+    }
+    function bindCardEvents(){
+      document.querySelectorAll('.card-section').forEach(function(s){s.addEventListener('click',function(){startEdit(this);});});
+      document.querySelectorAll('.badge').forEach(function(b){b.addEventListener('click',function(){toggleDone(this.getAttribute('data-id'));});});
+      document.querySelectorAll('[contenteditable]').forEach(function(t){
+        if(t.id==='shootingText')return;
+        t.addEventListener('blur',function(){saveTitle(this.getAttribute('data-id'),this.textContent);});
+      });
+    }
+    // Load data
+    fetch(API).then(function(r){return r.json();}).then(function(r){
+      var co=JSON.parse(r.cardContent);
+      for(var i=0;i<data.length;i++){var c=co[data[i].id];if(c){if(c.bouto!==undefined)data[i].bouto=c.bouto;if(c.cta!==undefined)data[i].cta=c.cta;if(c.voice!==undefined)data[i].voice=c.voice;if(c.note!==undefined)data[i].note=c.note;}}
+      var ti=JSON.parse(r.cardTitles);for(var i=0;i<data.length;i++){if(ti[data[i].id])data[i].title=ti[data[i].id];}
+      var st=JSON.parse(r.cardState);for(var i=0;i<data.length;i++){if(st[data[i].id]!==undefined)data[i].done=st[data[i].id];}
+      if(r.shootingDetails){var stel=document.getElementById('shootingText');stel.textContent=r.shootingDetails;stel.style.color='#333';}
+      renderCards();
+    }).catch(function(){renderCards();});
+    // Shooting details
+    var stel=document.getElementById('shootingText');
+    stel.addEventListener('focus',function(){if(stel.textContent==='（クリックして入力）'){stel.textContent='';stel.style.color='#333';}});
+    stel.addEventListener('blur',function(){var v=stel.textContent.trim();if(!v){stel.style.color='#aaa';stel.textContent='（クリックして入力）';v='';}saveToServer('shootingDetails',v);if(v)showToast();});
+  </script>
+  </body>
+</html>html>
+  </script></h3></h1>
+  </body>
+  </style></title>
+  </head>
